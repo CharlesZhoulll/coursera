@@ -64,8 +64,10 @@ Theta2_grad = zeros(size(Theta2));
 
 % First forward:
 a1 = [ones(1,m); X'];
-a2 = [ones(1,m); sigmoid(Theta1*a1)];
-a3 = sigmoid(Theta2*a2);
+z2 = Theta1*a1;
+a2 = [ones(1,m); sigmoid(z2)];
+z3 = Theta2*a2;
+a3 = sigmoid(z3);
 I = eye(num_labels);
 y_matrix = I(y,:);
 for i = 1:m
@@ -75,13 +77,20 @@ end
 part_theta1 = Theta1(:,2:end);
 part_theta2 = Theta2(:,2:end);
 J = J/m + lambda/(2*m)*(sum(sum(part_theta1.^2)) + sum(sum(part_theta2.^2)));
-    
 
+delta_1 = zeros(size(Theta1));
+delta_2 = zeros(size(Theta2));
+for i = 1:m
+    err_3 = a3(:,i) - y_matrix(i, :)';
+    z2_i = [1;z2(:,i)];
+    err_2 = Theta2'*err_3.*sigmoidGradient(z2_i);
+    err_2 = err_2(2:end);
+    delta_1 = delta_1 + err_2*a1(:,i)';
+    delta_2 = delta_2 + err_3*a2(:,i)';
+end
 
-
-
-
-
+Theta1_grad = 1/m.*delta_1 + [zeros(hidden_layer_size, 1), lambda/m.*part_theta1];
+Theta2_grad = 1/m.*delta_2 + [zeros(num_labels, 1), lambda/m.*part_theta2];
 
 
 
